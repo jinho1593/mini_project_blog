@@ -4,17 +4,15 @@ import lombok.RequiredArgsConstructor;
 import me.blog.miniprojectblog.domain.Article;
 import me.blog.miniprojectblog.dto.AddArticleRequest;
 import me.blog.miniprojectblog.dto.ArticleResponse;
+import me.blog.miniprojectblog.dto.UpdateArticleRequest;
 import me.blog.miniprojectblog.service.BlogService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -47,4 +45,33 @@ public class BlogApiController {
                 .body(outArticleResponse);
     }
 
+    @GetMapping("/api/articles/{id}")
+    public ResponseEntity<ArticleResponse> findArticle(@PathVariable long id) {
+        Optional<Article> articleOptional = blogService.findById(id);
+
+        if(articleOptional.isEmpty()) {
+            throw new IllegalArgumentException("not found: " + id);
+        }
+
+        Article article = articleOptional.get();
+
+        return ResponseEntity.ok()
+                .body(new ArticleResponse(article));
+    }
+
+    @PostMapping("/api/articles/delete/{id}")
+    public ResponseEntity<Void> deleteArticle(@PathVariable long id) {
+        blogService.delete(id);
+
+        return ResponseEntity.ok()
+                .build();
+    }
+
+    @PostMapping("/api/articles/update/{id}")
+    public ResponseEntity<Article> updateArticle(@PathVariable long id, @RequestBody UpdateArticleRequest request) {
+        Article updateArticle = blogService.update(id, request);
+
+        return ResponseEntity.ok()
+                .body(updateArticle);
+    }
 }
